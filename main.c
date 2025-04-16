@@ -27,9 +27,9 @@ typedef uint64_t u64;
 #define MAX_WINDOW_WIDTH 800
 #define MAX_WINDOW_HEIGHT 800
 
-#define MAZE_BORDER_COLOR /*0x707070*/ 0xbab5a8
+#define MAZE_BORDER_COLOR 0x707070 /*0xbab5a8*/
 #define MAZE_BORDER_WIDTH 3
-#define WINDOW_BACKGROUND_COLOR /*0x2828288*/ 0x0e232e
+#define WINDOW_BACKGROUND_COLOR 0x282828 // 0x0e232e
 #define TILE_WIDTH  40
 #define TILE_HEIGHT TILE_WIDTH
 
@@ -66,25 +66,37 @@ static Maze *maze;
 static u32 window_width = 0;
 static u32 window_height = 0;
 
-Maze *createEmptyMaze(u32 rows, u32 cols)
+void **alocate_mat(u32 rows, u32 cols, size_t element_size)
 {
-	Maze *maze = malloc(sizeof(Maze));
-	maze->rows = rows;
-	maze->cols = cols;
-
-	maze->mat = malloc(sizeof(Tile*) * rows);
+	void **mat = malloc(sizeof(void *) * rows);
 
 	for (u32 i = 0; i < rows; i++) {
-		maze->mat[i] = malloc(sizeof(Tile) * cols);
+		mat[i] = malloc(element_size * cols);
 	}
 
-	for (u32 i = 0; i < rows; i++) {
-		for (u32 j = 0; j < cols; j++) {
+	return mat;
+}
+
+void reset_maze(Maze *maze)
+{
+	for (u32 i = 0; i < maze->rows; i++) {
+		for (u32 j = 0; j < maze->cols; j++) {
 			maze->mat[i][j].borderStyle = BorderAllMask;
 			maze->mat[i][j].row = i;
 			maze->mat[i][j].col = j;
 		}
 	}
+}
+
+// TODO: change naming to snake case
+Maze *createEmptyMaze(u32 rows, u32 cols)
+{
+	Maze *maze = malloc(sizeof(Maze));
+	maze->rows = rows;
+	maze->cols = cols;
+	maze->mat = (Tile **)alocate_mat(rows, cols, sizeof(Tile));
+
+	reset_maze(maze);
 
 	return maze;
 }
@@ -106,7 +118,6 @@ void initX()
 		0, 0xffffff, WINDOW_BACKGROUND_COLOR
 	);
 
-	XMapWindow(dpy, win);
 	XSelectInput(dpy, win, ExposureMask | KeyPressMask);
 	gc = DefaultGC(dpy, scr);
 
@@ -118,11 +129,12 @@ void initX()
 	sizeHints->max_height = MAX_WINDOW_HEIGHT;
 	XSetWMNormalHints(dpy, win, sizeHints);
 	XFree(sizeHints);
+
+	XMapWindow(dpy, win);
 }
 
 void closeX()
 {
-	XFreeGC(dpy, gc);
 	XUnmapWindow(dpy, win);
 	XDestroyWindow(dpy, win);
 }
@@ -132,26 +144,37 @@ void drawTile(const Tile tile, u32 x, u32 y)
 	XSetForeground(dpy, gc, MAZE_BORDER_COLOR);
 
 	if (tile.borderStyle & BorderDot) {
-		XFillRectangle(dpy, win, gc, x, y, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
-		XFillRectangle(dpy, win, gc, x + TILE_WIDTH - MAZE_BORDER_WIDTH, y, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
-		XFillRectangle(dpy, win, gc, x, y + TILE_WIDTH - MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
-		XFillRectangle(dpy, win, gc, x + TILE_WIDTH - MAZE_BORDER_WIDTH, y + TILE_WIDTH - MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
+		XFillRectangle(dpy, win, gc,
+				x, y, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
+
+		XFillRectangle(dpy, win, gc,
+				x + TILE_WIDTH - MAZE_BORDER_WIDTH, y, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
+
+		XFillRectangle(dpy, win, gc,
+				x, y + TILE_WIDTH - MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
+
+		XFillRectangle(dpy, win, gc,
+				x + TILE_WIDTH - MAZE_BORDER_WIDTH, y + TILE_WIDTH - MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH, MAZE_BORDER_WIDTH);
 	}
 
 	if (tile.borderStyle & LeftBorderMask) {
-		XFillRectangle(dpy, win, gc, x, y, MAZE_BORDER_WIDTH, TILE_HEIGHT);
+		XFillRectangle(dpy, win, gc,
+				x, y, MAZE_BORDER_WIDTH, TILE_HEIGHT);
 	}
 
 	if (tile.borderStyle & RightBorderMask) {
-		XFillRectangle(dpy, win, gc, x + TILE_WIDTH - MAZE_BORDER_WIDTH, y, MAZE_BORDER_WIDTH, TILE_HEIGHT);
+		XFillRectangle(dpy, win, gc,
+				x + TILE_WIDTH - MAZE_BORDER_WIDTH, y, MAZE_BORDER_WIDTH, TILE_HEIGHT);
 	}
 
 	if (tile.borderStyle & TopBorderMask) {
-		XFillRectangle(dpy, win, gc, x, y, TILE_WIDTH, MAZE_BORDER_WIDTH);
+		XFillRectangle(dpy, win, gc,
+				x, y, TILE_WIDTH, MAZE_BORDER_WIDTH);
 	}
 
 	if (tile.borderStyle & BottomBorderMask) {
-		XFillRectangle(dpy, win, gc, x, y + TILE_HEIGHT - MAZE_BORDER_WIDTH, TILE_WIDTH, MAZE_BORDER_WIDTH);
+		XFillRectangle(dpy, win, gc,
+				x, y + TILE_HEIGHT - MAZE_BORDER_WIDTH, TILE_WIDTH, MAZE_BORDER_WIDTH);
 	}
 }
 
@@ -256,8 +279,8 @@ void handleKeyPress()
 	KeySym keysym = XLookupKeysym(&ev.xkey, 0);
 
 	if (keysym == XK_g) {
-		freeMaze(maze);
-		maze = createRandomMaze(window_width / TILE_WIDTH, window_height / TILE_HEIGHT);
+		reset_maze(maze);
+		randomizeMaze(maze);
 		XClearWindow(dpy, win);
 		drawMaze();
 	}
