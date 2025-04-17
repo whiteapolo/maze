@@ -10,16 +10,6 @@
 #include <unistd.h>
 #include <SDL2/SDL.h>
 
-typedef int8_t   i8;
-typedef int16_t  i16;
-typedef int32_t  i32;
-typedef int64_t  i64;
-
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
 #define MIN_WINDOW_WIDTH 800
@@ -27,9 +17,11 @@ typedef uint64_t u64;
 #define MAX_WINDOW_WIDTH 800
 #define MAX_WINDOW_HEIGHT 800
 
-#define MAZE_BORDER_COLOR 0x707070 /*0xbab5a8*/
+// #define MAZE_BORDER_COLOR 0x707070 /*0xbab5a8*/
+#define MAZE_BORDER_COLOR 0x0 /*0xbab5a8*/
 #define MAZE_BORDER_WIDTH 3
-#define WINDOW_BACKGROUND_COLOR 0x282828 // 0x0e232e
+// #define WINDOW_BACKGROUND_COLOR 0x282828 // 0x0e232e
+#define WINDOW_BACKGROUND_COLOR 0xffffff // 0x0e232e
 #define TILE_WIDTH  40
 #define TILE_HEIGHT TILE_WIDTH
 
@@ -43,6 +35,16 @@ typedef uint64_t u64;
 #define BorderDot         0b10000
 #define BorderAllMask     0b11111
 #define BorderNoneMask    0b00000
+
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
 typedef struct {
 	u8 borderStyle;
