@@ -1,6 +1,6 @@
 # Maze Generator
 
-![thumbnail](./demo/maze.img)
+![thumbnail](./demo/maze.jpg)
 
 ## Quick Start
 
